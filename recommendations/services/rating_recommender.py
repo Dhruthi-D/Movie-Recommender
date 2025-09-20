@@ -194,6 +194,9 @@ class RatingBasedRecommender:
         try:
             from .models import Movie
             
+            # Initialize genre_boost column with default value
+            movie_scores['genre_boost'] = 1.0
+            
             # Get user's preferred genres from their ratings
             user_movie_ids = user_ratings_df['movie_id'].tolist()
             user_movies = Movie.objects.filter(movie_id__in=user_movie_ids)
@@ -205,38 +208,35 @@ class RatingBasedRecommender:
                     if movie.genres:
                         user_genres.update(movie.genres.split('|'))
                 
-                # Get movie genres for scoring
-                movie_ids = movie_scores['movie_id'].tolist()
-                movies_with_genres = Movie.objects.filter(movie_id__in=movie_ids)
-                
-                genre_boost = []
-                for _, row in movie_scores.iterrows():
-                    movie_id = row['movie_id']
-                    movie = movies_with_genres.filter(movie_id=movie_id).first()
+                if user_genres:  # Only proceed if user has genre preferences
+                    # Get movie genres for scoring
+                    movie_ids = movie_scores['movie_id'].tolist()
+                    movies_with_genres = Movie.objects.filter(movie_id__in=movie_ids)
                     
-                    if movie and movie.genres and user_genres:
-                        movie_genres = set(movie.genres.split('|'))
-                        genre_overlap = len(user_genres.intersection(movie_genres))
-                        total_genres = len(user_genres.union(movie_genres))
+                    # Create a dictionary for faster lookup
+                    movie_genre_dict = {movie.movie_id: movie.genres for movie in movies_with_genres if movie.genres}
+                    
+                    # Apply genre boosting
+                    for idx, row in movie_scores.iterrows():
+                        movie_id = row['movie_id']
                         
-                        if total_genres > 0:
-                            genre_similarity = genre_overlap / total_genres
-                            boost = 1.0 + (genre_similarity * 0.3)  # 30% boost for genre match
-                        else:
-                            boost = 1.0
-                    else:
-                        boost = 1.0
+                        if movie_id in movie_genre_dict:
+                            movie_genres = set(movie_genre_dict[movie_id].split('|'))
+                            genre_overlap = len(user_genres.intersection(movie_genres))
+                            total_genres = len(user_genres.union(movie_genres))
+                            
+                            if total_genres > 0:
+                                genre_similarity = genre_overlap / total_genres
+                                boost = 1.0 + (genre_similarity * 0.3)  # 30% boost for genre match
+                                movie_scores.at[idx, 'genre_boost'] = boost
                     
-                    genre_boost.append(boost)
-                
-                movie_scores['genre_boost'] = genre_boost
-                movie_scores['mean'] = movie_scores['mean'] * movie_scores['genre_boost']
-            else:
-                movie_scores['genre_boost'] = 1.0
+                    # Apply the boost to mean ratings
+                    movie_scores['mean'] = movie_scores['mean'] * movie_scores['genre_boost']
             
             return movie_scores
             
         except Exception as e:
+            # Ensure genre_boost column exists with default value
             movie_scores['genre_boost'] = 1.0
             return movie_scores
     
@@ -329,11 +329,22 @@ class RatingBasedRecommender:
         # Calculate movie scores based on similar users' ratings with enhanced weighting
         movie_scores = ml_ratings.groupby('movie_id')['rating'].agg(['mean', 'count']).reset_index()
         
+        # Ensure we have valid data before proceeding
+        if movie_scores.empty:
+            return self._get_popular_movies(top_n)
+        
         # Add genre-based boosting
-        movie_scores = self._add_genre_boosting(movie_scores, user_ratings_df)
+        try:
+            movie_scores = self._add_genre_boosting(movie_scores, user_ratings_df)
+        except Exception as e:
+            logger.warning(f"Genre boosting failed: {e}")
+            movie_scores['genre_boost'] = 1.0
         
         # Add popularity bias correction
-        movie_scores = self._add_popularity_correction(movie_scores)
+        try:
+            movie_scores = self._add_popularity_correction(movie_scores)
+        except Exception as e:
+            logger.warning(f"Popularity correction failed: {e}")
         
         # Enhanced filtering with better thresholds
         movie_scores = movie_scores[movie_scores['count'] >= 1]  # Lower count requirement
@@ -342,8 +353,13 @@ class RatingBasedRecommender:
         # Exclude movies user has already rated
         movie_scores = movie_scores[~movie_scores['movie_id'].isin(user_rated_movies)]
         
+        # Ensure we still have data after filtering
         if movie_scores.empty:
             return self._get_personalized_recommendations(user_ratings_df, top_n)
+        
+        # Ensure all required columns exist
+        if 'genre_boost' not in movie_scores.columns:
+            movie_scores['genre_boost'] = 1.0
         
         # Enhanced scoring with multiple factors
         user_avg_rating = user_ratings_df['rating'].mean()
@@ -351,7 +367,9 @@ class RatingBasedRecommender:
         
         # Calculate advanced scores
         enhanced_scores = []
-        for _, movie in movie_scores.iterrows():
+        valid_movie_indices = []
+        
+        for idx, movie in movie_scores.iterrows():
             movie_id = movie['movie_id']
             
             # Get ratings from similar users for this movie
@@ -399,15 +417,18 @@ class RatingBasedRecommender:
             )
             
             enhanced_scores.append(final_score)
+            valid_movie_indices.append(idx)
         
         if not enhanced_scores:
             return self._get_personalized_recommendations(user_ratings_df, top_n)
-            
-        movie_scores['score'] = enhanced_scores
-        movie_scores = movie_scores.sort_values('score', ascending=False)
+        
+        # Create a new DataFrame with only valid movies and their scores
+        valid_movie_scores = movie_scores.loc[valid_movie_indices].copy()
+        valid_movie_scores['score'] = enhanced_scores
+        valid_movie_scores = valid_movie_scores.sort_values('score', ascending=False)
         
         # Get top movies
-        top_movies = movie_scores.head(top_n)['movie_id'].tolist()
+        top_movies = valid_movie_scores.head(top_n)['movie_id'].tolist()
         
         # Get movie details
         movies_df = _safe_to_df(Movie.objects.filter(movie_id__in=top_movies), 
