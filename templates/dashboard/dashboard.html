@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="card-title mb-1">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </h1>
+                        <p class="text-muted mb-0">Welcome back, {{ user.username }}!</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-primary fs-6">Movie Recommender</div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-pills nav-fill mb-4" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="preferences-tab" data-bs-toggle="pill" 
+                           href="#preferences" role="tab" aria-controls="preferences" aria-selected="true">
+                            <i class="fas fa-heart me-2"></i>Preferences
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="recommendations-tab" data-bs-toggle="pill" 
+                           href="#recommendations" role="tab" aria-controls="recommendations" aria-selected="false">
+                            <i class="fas fa-magic me-2"></i>AI Recommendations
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="preferences-rec-tab" data-bs-toggle="pill" 
+                           href="#preferences-rec" role="tab" aria-controls="preferences-rec" aria-selected="false">
+                            <i class="fas fa-star me-2"></i>From Your Preferences
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="browse-tab" data-bs-toggle="pill" 
+                           href="#browse" role="tab" aria-controls="browse" aria-selected="false">
+                            <i class="fas fa-film me-2"></i>Browse Movies
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="accuracy-tab" data-bs-toggle="pill" 
+                           href="#accuracy" role="tab" aria-controls="accuracy" aria-selected="false">
+                            <i class="fas fa-chart-line me-2"></i>Accuracy
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="dashboardTabsContent">
+                    <!-- Preferences Tab -->
+                    <div class="tab-pane fade show active" id="preferences" role="tabpanel" aria-labelledby="preferences-tab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-cog me-2"></i>Your Preferences
+                                        </h5>
+                                        <p class="text-muted">Tell us what genres you love to get better recommendations.</p>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'preferences' %}" class="btn btn-primary">
+                                                <i class="fas fa-edit me-2"></i>Manage Preferences
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-cog fa-3x text-primary mb-3"></i>
+                                        <h6>Personalized Experience</h6>
+                                        <p class="small text-muted">Customize your movie discovery journey</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Recommendations Tab -->
+                    <div class="tab-pane fade" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-magic me-2"></i>AI Recommendations
+                                        </h5>
+                                        <p class="text-muted">Discover movies tailored just for you using AI-powered algorithms.</p>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'recommendations' %}" class="btn btn-primary">
+                                                <i class="fas fa-magic me-2"></i>View AI Recommendations
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                                        <h6>AI-Powered</h6>
+                                        <p class="small text-muted">Advanced collaborative and content-based filtering</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Recommendations Tab -->
+                    <div class="tab-pane fade" id="preferences-rec" role="tabpanel" aria-labelledby="preferences-rec-tab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-star me-2"></i>From Your Preferences
+                                        </h5>
+                                        <p class="text-muted">Movies recommended based on your selected favorite genres.</p>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'preferences_recommendations' %}" class="btn btn-primary">
+                                                <i class="fas fa-star me-2"></i>View Genre-Based Recommendations
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-tags fa-3x text-primary mb-3"></i>
+                                        <h6>Genre-Based</h6>
+                                        <p class="small text-muted">Movies matching your favorite genres</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Browse Movies Tab -->
+                    <div class="tab-pane fade" id="browse" role="tabpanel" aria-labelledby="browse-tab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-film me-2"></i>Browse MovieLens Dataset
+                                        </h5>
+                                        <p class="text-muted">Explore the complete MovieLens dataset with 9,742 movies. Search, filter by genre, and discover new films.</p>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'browse_movies' %}" class="btn btn-primary">
+                                                <i class="fas fa-search me-2"></i>Browse All Movies
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                                        <h6>Static Dataset</h6>
+                                        <p class="small text-muted">Browse the original MovieLens data with search and filtering</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accuracy Tab -->
+                    <div class="tab-pane fade" id="accuracy" role="tabpanel" aria-labelledby="accuracy-tab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-chart-bar me-2"></i>System Accuracy
+                                        </h5>
+                                        <p class="text-muted">View the performance metrics of our recommendation algorithms.</p>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="{% url 'accuracy' %}" class="btn btn-primary">
+                                                <i class="fas fa-analytics me-2"></i>View Metrics
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-bullseye fa-3x text-primary mb-3"></i>
+                                        <h6>Precision & Recall</h6>
+                                        <p class="small text-muted">Measured against real user preferences</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-redirect to specific tab based on URL hash
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = window.location.hash;
+    if (hash) {
+        const tab = document.querySelector(`a[href="${hash}"]`);
+        if (tab) {
+            const tabTrigger = new bootstrap.Tab(tab);
+            tabTrigger.show();
+        }
+    }
+});
+</script>
+{% endblock %}

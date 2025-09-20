@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}From Your Preferences - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-star me-2"></i>From Your Preferences
+                </h1>
+                <p class="text-muted mb-0">Movies matching your favorite genres</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        {% if preferences %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-heart me-2"></i>Your Selected Genres:
+                        </h6>
+                        <div class="mt-2">
+                            {% for genre in preferences %}
+                                <span class="genre-tag">{{ genre }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if recommendations %}
+        <div class="row">
+            {% for rec in recommendations %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="movie-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ rec.title }}</h5>
+                            <small class="text-muted">Movie ID: {{ rec.movie_id }}</small>
+                            {% if rec.year %}
+                                <small class="text-muted"> • {{ rec.year }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if rec.genres %}
+                    <div class="mb-3">
+                        <small class="text-muted">Genres:</small>
+                        <div class="mt-1">
+                            <span class="badge bg-secondary me-1 mb-1">{{ rec.genres }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="rating">
+                            <span class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </span>
+                            <small class="text-muted ms-2">Genre Match</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-sync-alt me-2"></i>Want Different Movies?
+                        </h5>
+                        <p class="text-muted">Update your genre preferences to get new recommendations</p>
+                        <a href="{% url 'preferences' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Update Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-tags fa-4x text-muted mb-4"></i>
+                        <h4 class="card-title">No Genre Preferences Set</h4>
+                        <p class="text-muted mb-4">
+                            You need to select your favorite genres first to get personalized recommendations.
+                        </p>
+                        <a href="{% url 'preferences' %}" class="btn btn-primary">
+                            <i class="fas fa-heart me-2"></i>Set Your Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

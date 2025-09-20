@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Preferences - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-heart me-2"></i>Your Preferences
+                </h1>
+                <p class="text-muted mb-0">Customize your movie discovery experience</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-film me-2"></i>Favorite Genres
+                        </h5>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                {% for choice in form.favorite_genres %}
+                                    <div class="col-md-4 col-lg-3 mb-3">
+                                        <div class="form-check">
+                                            {{ choice.tag }}
+                                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                <i class="fas fa-tag me-2"></i>{{ choice.choice_label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>How It Works
+                        </h6>
+                        <p class="small text-muted">
+                            Select your favorite genres to help our AI understand your preferences. 
+                            This information is used to provide more accurate movie recommendations.
+                        </p>
+                        
+                        {% if profile.favorite_genres %}
+                        <hr>
+                        <h6 class="card-title">Current Preferences:</h6>
+                        <div class="mt-2">
+                            {% for genre in profile.favorite_genres %}
+                                <span class="genre-tag">{{ genre }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body text-center">
+                        <i class="fas fa-magic fa-2x text-primary mb-3"></i>
+                        <h6>AI-Powered Matching</h6>
+                        <p class="small text-muted">
+                            Our algorithms combine your genre preferences with collaborative filtering 
+                            to find the perfect movies for you.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Accuracy Metrics - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-chart-line me-2"></i>System Accuracy
+                </h1>
+                <p class="text-muted mb-0">Performance metrics of our recommendation algorithms</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <div class="metric-value">{{ metrics.similarity_score|floatformat:3 }}</div>
+                    <h6>Similarity Score</h6>
+                    <p class="mb-0 small">How well recommendations match user preferences</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <div class="metric-value">{{ metrics.diversity|floatformat:3 }}</div>
+                    <h6>Diversity</h6>
+                    <p class="mb-0 small">How varied and diverse the recommendations are</p>
+                </div>
+            </div>
+        </div>
+        
+        {% if not has_data %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>No Evaluation Data Available</strong><br>
+                    The system needs data to calculate accuracy metrics. Here's what you can do:
+                    <ul class="mb-2 mt-2">
+                        <li>Rate some movies in the "Browse Movies" section</li>
+                        <li>Set your genre preferences in "Preferences"</li>
+                        <li>Get AI recommendations to generate evaluation data</li>
+                    </ul>
+                    {% if metrics.debug_info %}
+                    <br><small><strong>Debug Info:</strong> {{ metrics.debug_info.new_users_count }} new users, {{ metrics.debug_info.ml_users_count }} MovieLens users, {{ metrics.debug_info.users_with_sufficient_ratings }} with sufficient ratings</small>
+                    {% endif %}
+                    <br><small><strong>Database Stats:</strong> {{ debug_stats.total_movies }} movies, {{ debug_stats.total_ml_ratings }} ML ratings, {{ debug_stats.total_user_ratings }} user ratings</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- Algorithm Details -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-cogs me-2"></i>Algorithm Performance
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 style="color: var(--primary-color);">User Similarity</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Rating pattern analysis</li>
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Pearson correlation matching</li>
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Similarity-weighted scoring</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 style="color: var(--primary-color);">Rating Analysis</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Multi-factor scoring</li>
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Confidence weighting</li>
+                                    <li><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i>Preference alignment</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                            
+                            
+                            {% if has_data %}
+                            <div class="mt-3">
+                                <h6 style="color: var(--primary-color);">Evaluation Details</h6>
+                                <p style="color: rgba(249, 250, 251, 0.8);">
+                                     Metrics calculated using real user data and 
+                                    cross-validation techniques.
+                                </p>
+                            </div>
+                            {% endif %}
+                        
+                        <div class="progress mb-3" style="position: relative;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 60%">
+                                User Similarity (60%)
+                            </div>
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 40%">
+                                Rating Analysis (40%)
+                            </div>
+                            <!-- Divider line between the two sections -->
+                            <div style="position: absolute; left: 60%; top: 0; bottom: 0; width: 2px; background: rgba(255, 255, 255, 0.3); z-index: 10;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-database me-2"></i>Dataset Statistics
+                        </h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="text-primary mb-1">9,742</h4>
+                                    <small class="text-muted">Movies</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-primary mb-1">100,836</h4>
+                                <small class="text-muted">Ratings</small>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="text-primary mb-1">610</h4>
+                                    <small class="text-muted">Users</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-primary mb-1">20%</h4>
+                                <small class="text-muted">Test Split</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

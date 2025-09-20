@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Recommendations - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-star me-2"></i>AI Recommendations
+                </h1>
+                <p class="text-muted mb-0">Movies recommended based on users with similar rating patterns to yours</p>
+                {% if ratings_count %}
+                <div class="mt-2">
+                    <small class="text-primary">
+                        <i class="fas fa-star me-1"></i>Based on your {{ ratings_count }} movie ratings
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        {% if recommendations %}
+        <div class="row">
+            {% for rec in recommendations %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="movie-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ rec.title }}</h5>
+                            <small class="text-muted">
+                                {% if rec.year %}{{ rec.year }}{% endif %}
+                                {% if rec.genres %} • {{ rec.genres|truncatechars:30 }}{% endif %}
+                            </small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-info dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown" aria-expanded="false" title="Why was this recommended?">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end explanation-dropdown">
+                                <li class="dropdown-header">
+                                    <i class="fas fa-lightbulb me-2"></i>Why Recommended?
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="px-3 py-2">
+                                    <div class="explanation-content">
+                                        <p class="mb-2"><strong>{{ rec.explanation.reason }}</strong></p>
+                                        {% if rec.explanation.similar_users_count > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-users me-2 text-primary"></i>
+                                            <span>{{ rec.explanation.similar_users_count }} similar users rated this</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.average_rating > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-star me-2 text-warning"></i>
+                                            <span>Average rating: {{ rec.explanation.average_rating }}/5.0</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.rating_count > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-chart-bar me-2 text-info"></i>
+                                            <span>{{ rec.explanation.rating_count }} total ratings</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.genre_match %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-tags me-2 text-success"></i>
+                                            <span>Matches your preferred genres</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.similarity_score > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-heart me-2 text-danger"></i>
+                                            <span>Similarity score: {{ rec.explanation.similarity_score }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.confidence_score > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-shield-alt me-2 text-success"></i>
+                                            <span>Confidence: {{ rec.explanation.confidence_score|floatformat:1 }}%</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.relevance_score > 0 %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-target me-2 text-info"></i>
+                                            <span>Relevance: {{ rec.explanation.relevance_score|floatformat:1 }}%</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.user_rating_pattern %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-user-tag me-2 text-warning"></i>
+                                            <span>Your pattern: {{ rec.explanation.user_rating_pattern }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if rec.explanation.technical_details %}
+                                        <div class="explanation-detail">
+                                            <i class="fas fa-cogs me-2 text-secondary"></i>
+                                            <span>Technical: Similarity {{ rec.explanation.technical_details.similarity_range }}, Consistency {{ rec.explanation.technical_details.similarity_consistency|floatformat:2 }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="rating">
+                            <span style="color: #f59e0b;">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </span>
+                            <small style="color: rgba(249, 250, 251, 0.7);" class="ms-2">AI Recommended</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="fas fa-sync-alt me-2"></i>Want Fresh Recommendations?
+                        </h5>
+                        <p class="text-muted">Update your preferences to get new movie suggestions</p>
+                        <a href="{% url 'preferences' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Update Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-film fa-4x text-muted mb-4"></i>
+                        <h4 class="card-title">No Recommendations Available</h4>
+                        <p class="text-muted mb-4">
+                            We need more information about your preferences to provide personalized recommendations.
+                        </p>
+                        <a href="{% url 'preferences' %}" class="btn btn-primary">
+                            <i class="fas fa-heart me-2"></i>Set Your Preferences
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

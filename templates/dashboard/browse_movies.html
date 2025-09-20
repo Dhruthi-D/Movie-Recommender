@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load stars %}
+
+{% block title %}Browse Movies - Movie Recommender{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-film me-2"></i>Browse Movies
+                </h1>
+                <p class="text-muted mb-0">Explore the MovieLens dataset ({{ total_movies }} movies)</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Search Movies</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search_query }}" placeholder="Enter movie title...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="genre" class="form-label">Filter by Genre</label>
+                        <select class="form-select" id="genre" name="genre">
+                            <option value="">All Genres</option>
+                            {% for genre in all_genres %}
+                                <option value="{{ genre }}" {% if genre == current_genre %}selected{% endif %}>
+                                    {{ genre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sort" class="form-label">Sort by</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title A-Z</option>
+                            <option value="year" {% if sort_by == 'year' %}selected{% endif %}>Year (Newest)</option>
+                            <option value="movie_id" {% if sort_by == 'movie_id' %}selected{% endif %}>Movie ID</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Info -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} movies
+                    {% if search_query or current_genre %}
+                        (filtered results)
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Movies Grid -->
+        {% if page_obj %}
+        <div class="row">
+            {% for movie in page_obj %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="movie-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ movie.title }}</h5>
+                            <small class="text-muted">ID: {{ movie.movie_id }}</small>
+                            {% if movie.year %}
+                                <small class="text-muted"> • {{ movie.year }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-heart me-2"></i>Add to Favorites</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-list me-2"></i>Add to Watchlist</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-share me-2"></i>Share</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if movie.genres %}
+                    <div class="mb-3">
+                        <small class="text-muted">Genres:</small>
+                        <div class="mt-1">
+                            <span class="badge bg-secondary me-1 mb-1">{{ movie.genres }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="rating">
+                            {% if movie.user_rating %}
+                                <span style="color: #10b981;">
+                                    {{ movie.user_rating|stars_display|safe }}
+                                </span>
+                                <small style="color: #10b981;" class="ms-2">You rated: {{ movie.user_rating }}/5</small>
+                            {% else %}
+                                <span style="color: rgba(249, 250, 251, 0.5);">
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </span>
+                                <small style="color: rgba(249, 250, 251, 0.5);" class="ms-2">Not rated</small>
+                            {% endif %}
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#ratingModal{{ movie.movie_id }}">
+                                <i class="fas fa-star me-1"></i>
+                                {% if movie.movie_id in user_ratings %}Update{% else %}Rate{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="Movie pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                        <h4 class="card-title">No Movies Found</h4>
+                        <p class="text-muted mb-4">
+                            Try adjusting your search criteria or filters.
+                        </p>
+                        <a href="{% url 'browse_movies' %}" class="btn btn-primary">
+                            <i class="fas fa-refresh me-2"></i>Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rating Modals -->
+{% for movie in page_obj %}
+<div class="modal fade" id="ratingModal{{ movie.movie_id }}" tabindex="-1" aria-labelledby="ratingModalLabel{{ movie.movie_id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ratingModalLabel{{ movie.movie_id }}">Rate "{{ movie.title }}"</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'rate_movie' movie.movie_id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rating{{ movie.movie_id }}" class="form-label">Your Rating</label>
+                        <select class="form-select" id="rating{{ movie.movie_id }}" name="rating" required>
+                            <option value="">Select rating...</option>
+                            <option value="1" {% if movie.user_rating == 1 %}selected{% endif %}>1 Star - Poor</option>
+                            <option value="2" {% if movie.user_rating == 2 %}selected{% endif %}>2 Stars - Fair</option>
+                            <option value="3" {% if movie.user_rating == 3 %}selected{% endif %}>3 Stars - Good</option>
+                            <option value="4" {% if movie.user_rating == 4 %}selected{% endif %}>4 Stars - Very Good</option>
+                            <option value="5" {% if movie.user_rating == 5 %}selected{% endif %}>5 Stars - Excellent</option>
+                        </select>
+                    </div>
+                    {% if movie.genres %}
+                    <div class="mb-3">
+                        <small class="text-muted">Genres: {{ movie.genres }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-star me-1"></i>Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
